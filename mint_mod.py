@@ -2,6 +2,7 @@ from thirdweb import ThirdwebSDK
 from thirdweb.types.nft import NFTMetadataInput, EditionMetadataInput
 import json
 import config
+import redis
 
 # Note that you can customize this metadata however you like
 
@@ -16,7 +17,7 @@ HOST_PRIVATE_KEY = config.private_key
 sdk = ThirdwebSDK.from_private_key(HOST_PRIVATE_KEY, "rinkeby")
 
 contract = sdk.get_edition(EDITION_ADDRESS)
-
+pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True, db=0)
 
 
 def mint_nft(mint_request):
@@ -32,28 +33,40 @@ def mint_nft(mint_request):
     print(mint_request)
 
     # You can pass in any address here to mint the NFT to
-    tx = contract.mint_to("0xe403E8011CdB251c12ccF6911F44D160699CCC3c", metadata_with_supply)
-    receipt = tx.receipt
-    token_id = tx.id
-    nft = tx.data()
 
-    print({
-        # "tx":tx,
-        # "receipt":receipt,
-        "token_id":token_id,
-        "nft_data":nft.metadata,
-        "contract_address":EDITION_ADDRESS
-    }
-)
+    try:
+        tx = contract.mint_to("0xe403E8011CdB251c12ccF6911F44D160699CCC3c", metadata_with_supply)
+        receipt = tx.receipt
+        token_id = tx.id
+        nft = tx.data()
 
-    return {
-        # "tx":tx,
-        # "receipt":receipt,
-        "token_id":token_id,
-        "nft_data":{
-            "name": mint_request["meta_data"]["name"],
-            "description": mint_request["meta_data"]["description"],
-            "image": mint_request["meta_data"]["image"],
-        },
-        "contract_address":EDITION_ADDRESS
-    }
+        print({
+            # "tx":tx,
+            # "receipt":receipt,
+            "token_id": token_id,
+            "nft_data": nft.metadata,
+            "contract_address": EDITION_ADDRESS
+        }
+        )
+
+        result = {
+            "token_id": token_id,
+            "nft_data": {
+                "name": mint_request["meta_data"]["name"],
+                "description": mint_request["meta_data"]["description"],
+                "image": mint_request["meta_data"]["image"],
+            },
+            "contract_address": EDITION_ADDRESS
+        }
+
+        pool.rpush("mintRes", json.dumps({
+            "id":mint_request["id"],
+            "success": True,
+            "data": result
+        }))
+    except Exception as E:
+        pool.rpush("mintRes", json.dumps({
+            "id": mint_request["id"],
+            "success": False,
+            "data": str(E)
+        }))
