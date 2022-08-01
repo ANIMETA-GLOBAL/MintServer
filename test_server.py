@@ -1,6 +1,6 @@
 import requests
 
-url = 'http://47.245.59.229:6666/mint'
+url = 'http://localhost:6666/mint'
 data = {'mint_request': {
     "meta_data":
         {
