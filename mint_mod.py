@@ -127,6 +127,7 @@ def mint_nft(mint_request):
                     "success": True,
                     "data": result
                 }))
+                send = True
             except Exception as E:
                 logger.debug(f"uploadRedis-error-{E}-count:{max_try}")
             max_try += 1
