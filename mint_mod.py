@@ -32,7 +32,7 @@ HOST_PRIVATE_KEY = config.private_key
 sdk = ThirdwebSDK.from_private_key(HOST_PRIVATE_KEY, "rinkeby")
 
 contract = sdk.get_edition(EDITION_ADDRESS)
-pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,password=config.redis_pwd, db=0,ssl=True)
+pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,password=config.redis_pwd, db=0)
 
 
 def update_mint_history(history):
@@ -120,23 +120,27 @@ def mint_nft(mint_request):
         max_try = 0
         while not send and max_try < 5:
             pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,
-                               password=config.redis_pwd, db=0, ssl=True)
+                               password=config.redis_pwd, db=0)
             try :
-                print("sendding redis",mint_request["id"],max_try)
+                print("sending redis",mint_request["id"],max_try)
                 pool.rpush("mintRes", json.dumps({
                     "id": mint_request["id"],
                     "success": True,
                     "data": result
                 }))
+                print("send redis",mint_request["id"],"success")
                 send = True
                 logger.info(f"uploadRedis success -{mint_request['id']}")
             except Exception as E:
+                print(E)
                 logger.debug(f"uploadRedis-error-{E}-count:{max_try}")
             max_try += 1
             logger.info(f"mint-success-{mint_request}-{True}-{result}")
+        print("mint success")
 
     except Exception as E:
-
+        pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,
+                           password=config.redis_pwd, db=0)
         logger.debug(f"mint-error-{mint_request}-{False}-{E}")
         log = {
             "receipt_time": int(start_time),
