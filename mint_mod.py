@@ -98,6 +98,8 @@ def mint_nft(mint_request):
             },
             "contract_address": EDITION_ADDRESS,
             "chain_id": "0x4",
+            "mint_amount":mint_request["mint_amount"]
+
         }
 
 
