@@ -32,7 +32,7 @@ HOST_PRIVATE_KEY = config.private_key
 sdk = ThirdwebSDK.from_private_key(HOST_PRIVATE_KEY, "rinkeby")
 
 contract = sdk.get_edition(EDITION_ADDRESS)
-pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,password=config.redis_pwd, db=0)
+pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,password=config.redis_pwd, db=0,ssl=True)
 
 
 def update_mint_history(history):
@@ -103,12 +103,7 @@ def mint_nft(mint_request):
         }
 
 
-        pool.rpush("mintRes", json.dumps({
-            "id": mint_request["id"],
-            "success": True,
-            "data": result
-        }))
-        logger.info(f"mint-success-{mint_request}-{True}-{result}")
+
 
         log = {
             "receipt_time":int(start_time),
@@ -121,13 +116,15 @@ def mint_nft(mint_request):
         }
 
         update_mint_history(log)
-
-    except Exception as E:
         pool.rpush("mintRes", json.dumps({
             "id": mint_request["id"],
-            "success": False,
-            "data": str(E)
+            "success": True,
+            "data": result
         }))
+        logger.info(f"mint-success-{mint_request}-{True}-{result}")
+
+    except Exception as E:
+
         logger.debug(f"mint-error-{mint_request}-{False}-{E}")
         log = {
             "receipt_time": int(start_time),
@@ -140,3 +137,9 @@ def mint_nft(mint_request):
         }
 
         update_mint_history(log)
+        pool.rpush("mintRes", json.dumps({
+            "id": mint_request["id"],
+            "success": False,
+            "data": str(E)
+        }))
+
