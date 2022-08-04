@@ -122,6 +122,7 @@ def mint_nft(mint_request):
             pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,
                                password=config.redis_pwd, db=0, ssl=True)
             try :
+                print("sendding redis",mint_request["id"],max_try)
                 pool.rpush("mintRes", json.dumps({
                     "id": mint_request["id"],
                     "success": True,
