@@ -32,7 +32,7 @@ HOST_PRIVATE_KEY = config.private_key
 sdk = ThirdwebSDK.from_private_key(HOST_PRIVATE_KEY, "rinkeby")
 
 contract = sdk.get_edition(EDITION_ADDRESS)
-pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True, db=0)
+pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,password=config.redis_pwd, db=0)
 
 
 def update_mint_history(history):
