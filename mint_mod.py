@@ -3,8 +3,23 @@ from thirdweb.types.nft import NFTMetadataInput, EditionMetadataInput
 import json
 import config
 import redis
-
+import pymysql
+import time
 # Note that you can customize this metadata however you like
+import logging
+import os.path
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)  # Log等级总开关
+rq = time.strftime('%Y%m%d%H%M', time.localtime(time.time()))[:-4]
+log_path = os.path.dirname(os.getcwd()) + '/MintServer/logs/'
+log_name = log_path + "mint_" +rq + '.log'
+logfile = log_name
+fh = logging.FileHandler(logfile, mode='a')
+fh.setLevel(logging.DEBUG)  # 输出到file的log等级的开关
+formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 EDITION_ADDRESS = "0x0B892512FC5Ae908f0f4B9A411AaED5Cd0aDab91"
 
@@ -20,7 +35,32 @@ contract = sdk.get_edition(EDITION_ADDRESS)
 pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True, db=0)
 
 
+def update_mint_history(history):
+    db = pymysql.connect(host=config.history_mysql_host, user=config.mysql_user, password=config.mysql_pwd,
+                         db=config.mysql_db)
+
+    cursor = db.cursor()
+    sql = "INSERT INTO animeta_mint_history(receipt_time, \
+           mint_id,redis_response_time,mint_success,mint_chain_id,mint_contract_address,data) \
+           VALUES (%s,%s,%s,%s,%s,%s,%s)"
+
+    val = ((history["receipt_time"], history["mint_id"], history["redis_response_time"], history["mint_success"],
+            history["mint_chain_id"], history["mint_contract_address"], history["data"]),)
+    try:
+        # 执行sql语句
+        cursor.executemany(sql, set(val))
+        # 提交到数据库执行
+        db.commit()
+    except Exception as E:
+        # 如果发生错误则回滚
+        print(E)
+        logger.debug("update-error" + str(E))
+        db.rollback()
+
+
+
 def mint_nft(mint_request):
+    start_time = time.time()
     metadata_with_supply = EditionMetadataInput(
         NFTMetadataInput.from_json({
             "name": mint_request["meta_data"]["name"],
@@ -40,14 +80,14 @@ def mint_nft(mint_request):
         token_id = tx.id
         nft = tx.data()
 
-        print({
-            # "tx":tx,
-            # "receipt":receipt,
+        res = {
+            "tx":tx,
+            "receipt":receipt,
             "token_id": token_id,
             "nft_data": nft.metadata,
             "contract_address": EDITION_ADDRESS
         }
-        )
+
 
         result = {
             "token_id": token_id,
@@ -56,17 +96,45 @@ def mint_nft(mint_request):
                 "description": mint_request["meta_data"]["description"],
                 "image": mint_request["meta_data"]["image"],
             },
-            "contract_address": EDITION_ADDRESS
+            "contract_address": EDITION_ADDRESS,
+            "chain_id": "0x4",
         }
 
+
         pool.rpush("mintRes", json.dumps({
-            "id":mint_request["id"],
+            "id": mint_request["id"],
             "success": True,
             "data": result
         }))
+        logger.info(f"mint-success-{mint_request}-{True}-{result}")
+
+        log = {
+            "receipt_time":int(start_time),
+            "mint_id":mint_request["id"],
+            "redis_response_time":int(time.time()),
+            "mint_success":True,
+            "mint_chain_id":"0x4",
+            "mint_contract_address":EDITION_ADDRESS,
+            "data":str({"chain_res":res,"result":result})
+        }
+
+        update_mint_history(log)
+
     except Exception as E:
         pool.rpush("mintRes", json.dumps({
             "id": mint_request["id"],
             "success": False,
             "data": str(E)
         }))
+        logger.debug(f"mint-error-{mint_request}-{False}-{E}")
+        log = {
+            "receipt_time": int(start_time),
+            "mint_id": mint_request["id"],
+            "redis_response_time": int(time.time()),
+            "mint_success": False,
+            "mint_chain_id": "0x4",
+            "mint_contract_address": EDITION_ADDRESS,
+            "data": str(E)
+        }
+
+        update_mint_history(log)
