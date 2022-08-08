@@ -1,7 +1,7 @@
 import base58
 import json
 import os
-from SolanaMintServer.api import metaplex_api
+from api.metaplex_api import MetaplexAPI
 from cryptography.fernet import Fernet
 SERVER_DECRYPTION_KEY = Fernet.generate_key().decode("ascii")
 TEST_PRIVATE_KEY = "61VhiWDnXAtmKYVWwVxnjHq7xqsH5yESnntzCR1WDYS3rS3K5VUjaP4QQt8j1DNdf2jqSuEx2jjAfSTdXoB1VGej"
@@ -11,7 +11,7 @@ cfg = {
     "PUBLIC_KEY": TEST_PUBLIC_KEY,
     "DECRYPTION_KEY": SERVER_DECRYPTION_KEY
 }
-api = metaplex_api.MetaplexAPI(cfg)
+api = MetaplexAPI(cfg)
 # account = metaplex_api.Account(list(base58.b58decode(cfg["PRIVATE_KEY"]))[:32])
 api_endpoint = "https://api.devnet.solana.com/"
 
