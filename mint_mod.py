@@ -110,7 +110,7 @@ def mint_nft(mint_request):
             "mint_id":mint_request["id"],
             "redis_response_time":int(time.time()),
             "mint_success":True,
-            "mint_chain_id":"0x4",
+            "network":"rinkeby",
             "mint_contract_address":EDITION_ADDRESS,
             "data":json.dumps(result)
         }
