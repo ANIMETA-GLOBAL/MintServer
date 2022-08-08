@@ -25,5 +25,5 @@ result = api.deploy(api_endpoint, contract_name, contract_symbol,fees=0)
 print(result)
 contract_key = json.loads(result).get('contract')
 # conduct a mint, and send to a recipient, e.g. wallet_2
-mint_res = api.mint(api_endpoint, contract_key, TEST_PUBLIC_KEY, divinity_json_file)
+mint_res = api.mint(api_endpoint, contract_key, TEST_PUBLIC_KEY, divinity_json_file,supply=100)
 print(mint_res)
