@@ -97,7 +97,7 @@ def mint_nft(mint_request):
                 "image": mint_request["meta_data"]["image"],
             },
             "contract_address": EDITION_ADDRESS,
-            "network": "0x4",
+            "network": "rinkeby",
             "mint_amount":mint_request["mint_amount"]
 
         }
