@@ -5,6 +5,5 @@
 *.log
 SolanaMintServer/api/__init__.py
 SolanaMintServer/metaplex/__init__.py
-SolanaMintServer/api.py
 *.logs
 config.py
