@@ -41,11 +41,11 @@ def update_mint_history(history):
 
     cursor = db.cursor()
     sql = "INSERT INTO animeta_mint_history(receipt_time, \
-           mint_id,redis_response_time,mint_success,mint_chain_id,mint_contract_address,data) \
+           mint_id,redis_response_time,mint_success,mint_network,mint_contract_address,data) \
            VALUES (%s,%s,%s,%s,%s,%s,%s)"
 
     val = ((history["receipt_time"], history["mint_id"], history["redis_response_time"], history["mint_success"],
-            history["mint_chain_id"], history["mint_contract_address"], history["data"]),)
+            history["mint_network"], history["mint_contract_address"], history["data"]),)
     try:
         # 执行sql语句
         cursor.executemany(sql, set(val))
@@ -97,7 +97,7 @@ def mint_nft(mint_request):
                 "image": mint_request["meta_data"]["image"],
             },
             "contract_address": EDITION_ADDRESS,
-            "chain_id": "0x4",
+            "network": "0x4",
             "mint_amount":mint_request["mint_amount"]
 
         }
@@ -110,7 +110,7 @@ def mint_nft(mint_request):
             "mint_id":mint_request["id"],
             "redis_response_time":int(time.time()),
             "mint_success":True,
-            "network":"rinkeby",
+            "mint_network":"rinkeby",
             "mint_contract_address":EDITION_ADDRESS,
             "data":json.dumps(result)
         }
@@ -147,7 +147,7 @@ def mint_nft(mint_request):
             "mint_id": mint_request["id"],
             "redis_response_time": int(time.time()),
             "mint_success": False,
-            "mint_chain_id": "0x4",
+            "mint_network": "0x4",
             "mint_contract_address": EDITION_ADDRESS,
             "data": str(E)
         }
