@@ -19,7 +19,7 @@ contract_name = "Animeta"
 contract_symbol = "AM"
 
 # requires a JSON file with metadata. best to publish on Arweave
-divinity_json_file = "https://arweave.net/lafoms3egQiVeboVVSsgIXRH14DiyxmKLwzD_EWiKv8"
+divinity_json_file = "https://ipfs.io/ipfs/QmWtsYsCt5sWCqC6B5fqWeDVmJTBCShy4fo5GXNFCKvweQ/0"
 # deploy a contract. will return a contract key.
 result = api.deploy(api_endpoint, contract_name, contract_symbol,fees=0)
 print(result)
