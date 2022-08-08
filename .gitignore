@@ -8,4 +8,3 @@ SolanaMintServer/metaplex/__init__.py
 SolanaMintServer/api.py
 *.logs
 config.py
-SolanaMintServer/api.py
