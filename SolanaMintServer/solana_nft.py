@@ -1,7 +1,7 @@
 import base58
 import json
 import os
-import api.metaplex_api as metaplex_api
+from SolanaMintServer.api import metaplex_api
 from cryptography.fernet import Fernet
 SERVER_DECRYPTION_KEY = Fernet.generate_key().decode("ascii")
 TEST_PRIVATE_KEY = "61VhiWDnXAtmKYVWwVxnjHq7xqsH5yESnntzCR1WDYS3rS3K5VUjaP4QQt8j1DNdf2jqSuEx2jjAfSTdXoB1VGej"
