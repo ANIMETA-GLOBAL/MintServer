@@ -112,7 +112,7 @@ def mint_nft(mint_request):
             "mint_success":True,
             "mint_chain_id":"0x4",
             "mint_contract_address":EDITION_ADDRESS,
-            "data":str(result)
+            "data":json.dumps(result)
         }
 
         update_mint_history(log)
