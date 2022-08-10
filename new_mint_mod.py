@@ -43,10 +43,10 @@ class Minter(object):
 
         signed_txn = self.w3.eth.account.signTransaction(tx, private_key=self.account.privateKey)
         tx_hash = self.w3.toHex(self.w3.keccak(signed_txn.rawTransaction))
-        print(tx_hash)
+        print("tx_hash:", tx_hash)
         self.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
         res = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-        print(res)
+        # print(res)
         return res
 
     def london_mint_nft(self, mint_request):
@@ -67,11 +67,14 @@ class Minter(object):
         )
         signed_txn = self.w3.eth.account.signTransaction(tx, private_key=self.account.privateKey)
         tx_hash = self.w3.toHex(self.w3.keccak(signed_txn.rawTransaction))
-        print(tx_hash)
+        print("tx_hash:", tx_hash)
         self.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
         res = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-        print(res)
         return res
+
+    def mint_nft(self, mint_request):
+        return self.legacy_mint_nft(mint_request) if self.chainId == config.network_config["bsc"][
+            "chainId"] else self.london_mint_nft(mint_request)
 
 
 class NFTFactory(object):
@@ -85,9 +88,6 @@ class NFTFactory(object):
         self.bsc = config.network_config["bsc"]
 
 
-
-
-
 if __name__ == '__main__':
     mint_request = {
         "account": config.address,
@@ -95,9 +95,10 @@ if __name__ == '__main__':
         "uri": "https://ipfs.moralis.io:2053/ipfs/QmZJxFn8kTwb8HcpHyoNPq1jsDSE2pEqG848FGhtFGU5ES"
     }
 
-    network = "bsc"
+    network = "ethereum"
 
     A = Minter(config.network_config[network])
 
-    res = A.london_mint_nft(mint_request=mint_request) if network !="bsc" else A.legacy_mint_nft(mint_request=mint_request)
+    res = A.mint_nft(mint_request)
+
     print(res)
