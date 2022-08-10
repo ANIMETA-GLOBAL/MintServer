@@ -25,20 +25,17 @@ class Minter(object):
         self.w3.middleware_onion.add(construct_sign_and_send_raw_middleware(self.account))
         print(self.account.address)
 
-    def mintNft(self, mint_request):
-        print(self.w3.eth.generate_gas_price())
-        GAS_AMOUNT = 65000
-        GAS_PRICE = 12  # gwei
-        MAXFeeperGas = 20
+    def legacy_mint_nft(self, mint_request):
+        print("work on legacy mint")
+        current_gas = self.w3.eth.gas_price
+        print("gas price:", current_gas)
         nonce = self.w3.eth.get_transaction_count(self.account.address)
         tx = self.contract.functions.mint(mint_request["account"], mint_request["amount"], bytes([]),
                                           mint_request["uri"]).buildTransaction(
             {
                 'chainId': self.chainId,
-                # 'gas': GAS_AMOUNT,
-                'gasPrice': Web3.toWei(GAS_PRICE, 'gwei'),
-                # 'maxFeePerGas':Web3.toWei(MAXFeeperGas, 'gwei'),
-                # 'maxPriorityFeePerGas': Web3.toWei('10', 'gwei'),
+                'gasPrice': current_gas,
+
                 'from': self.account.address,
                 'nonce': nonce
             }
@@ -46,11 +43,35 @@ class Minter(object):
 
         signed_txn = self.w3.eth.account.signTransaction(tx, private_key=self.account.privateKey)
         tx_hash = self.w3.toHex(self.w3.keccak(signed_txn.rawTransaction))
-
-        # signed_tx = self.w3.eth.sign_transaction(tx,private_key=self.account.privateKey)
         print(tx_hash)
-        res = self.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        self.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        res = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
         print(res)
+        return res
+
+    def london_mint_nft(self, mint_request):
+        print("work on london mint")
+        current_gas = self.w3.eth.gas_price
+        print("gas price:", current_gas)
+        MFPG = 60
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
+        tx = self.contract.functions.mint(mint_request["account"], mint_request["amount"], bytes([]),
+                                          mint_request["uri"]).buildTransaction(
+            {
+                'chainId': self.chainId,
+                'maxFeePerGas': Web3.toWei(MFPG, 'gwei'),
+                'maxPriorityFeePerGas': current_gas,
+                'from': self.account.address,
+                'nonce': nonce
+            }
+        )
+        signed_txn = self.w3.eth.account.signTransaction(tx, private_key=self.account.privateKey)
+        tx_hash = self.w3.toHex(self.w3.keccak(signed_txn.rawTransaction))
+        print(tx_hash)
+        self.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        res = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        print(res)
+        return res
 
 
 class NFTFactory(object):
@@ -64,11 +85,19 @@ class NFTFactory(object):
         self.bsc = config.network_config["bsc"]
 
 
+
+
+
 if __name__ == '__main__':
     mint_request = {
         "account": config.address,
         "amount": 100,
         "uri": "https://ipfs.moralis.io:2053/ipfs/QmZJxFn8kTwb8HcpHyoNPq1jsDSE2pEqG848FGhtFGU5ES"
     }
-    A = Minter(config.network_config["bsc"])
-    A.mintNft(mint_request=mint_request)
+
+    network = "bsc"
+
+    A = Minter(config.network_config[network])
+
+    res = A.london_mint_nft(mint_request=mint_request) if network !="bsc" else A.legacy_mint_nft(mint_request=mint_request)
+    print(res)
