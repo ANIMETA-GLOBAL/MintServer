@@ -45,6 +45,8 @@ class Minter(object):
 
         # signed_tx = self.w3.eth.sign_transaction(tx,private_key=self.account.privateKey)
         print(tx_hash)
+        res = self.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        print(res)
 
 
 class NFTFactory(object):
