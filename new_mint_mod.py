@@ -17,7 +17,7 @@ class Minter(object):
         self.provider = Web3.HTTPProvider(network["rpcUrl"],)
         self.w3 = Web3(self.provider)
         print(self.w3.isConnected())
-        # self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         self.address = network["address"]
         self.contract = self.w3.eth.contract(address=self.address, abi=ABI)
         self.account: LocalAccount = Account.from_key(config.private_key)
