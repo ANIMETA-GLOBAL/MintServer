@@ -67,6 +67,10 @@ if __name__ == '__main__':
     mint_request = {
         "account": config.address,
         "mint_amount": 100,
+        "metadata":{
+            "name":"TEST",
+        },
+
         "meta_data_url": "https://ipfs.moralis.io:2053/ipfs/QmZJxFn8kTwb8HcpHyoNPq1jsDSE2pEqG848FGhtFGU5ES"
     }
     A = SolanaMint()
