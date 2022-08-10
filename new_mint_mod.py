@@ -30,7 +30,7 @@ class Minter(object):
 
     def mintNft(self,mint_request):
 
-        tx = self.contract.functions.mint(mint_request["account"],mint_request["amount"],bytes([]),mint_request["uri"]).transact()
+        tx = self.contract.functions.mint(mint_request["account"],mint_request["amount"],bytes([]),mint_request["uri"]).call({'from': self.account})
         # signed_tx = self.w3.eth.sign_transaction(tx,private_key=self.account.privateKey)
         gas_estimate = self.w3.eth.estimate_gas(tx)
         print(gas_estimate)
