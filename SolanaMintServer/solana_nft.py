@@ -50,7 +50,7 @@ class SolanaMint(object):
     def mint_nft(self, mint_request):
         meta_data_url = mint_request["meta_data_url"]
         amount = mint_request["mint_amount"]
-        mint_res = self.api.mint(self.api_endpoint, self.contract_key,self.public_key, meta_data_url,
+        mint_res = self.api.mint(self.api_endpoint, self.contract_key,self.public_key, meta_data_url,supply=
                                  amount)
         return mint_res
 
