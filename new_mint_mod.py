@@ -26,8 +26,9 @@ class Minter(object):
         print(self.account.address)
 
     def mintNft(self, mint_request):
+        print(self.w3.eth.gasPriceStrategy)
         GAS_AMOUNT = 65000
-        GAS_PRICE = 20  # gwei
+        GAS_PRICE = 12  # gwei
         MAXFeeperGas = 20
         nonce = self.w3.eth.get_transaction_count(self.account.address)
         tx = self.contract.functions.mint(mint_request["account"], mint_request["amount"], bytes([]),
