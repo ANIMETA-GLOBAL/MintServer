@@ -27,7 +27,7 @@ class Minter(object):
 
     def mintNft(self, mint_request):
         GAS_AMOUNT = 65000
-        GAS_PRICE = 12  # gwei
+        GAS_PRICE = 20  # gwei
         MAXFeeperGas = 20
         nonce = self.w3.eth.get_transaction_count(self.account.address)
         tx = self.contract.functions.mint(mint_request["account"], mint_request["amount"], bytes([]),
@@ -36,8 +36,8 @@ class Minter(object):
                 'chainId': self.chainId,
                 # 'gas': GAS_AMOUNT,
                 'gasPrice': Web3.toWei(GAS_PRICE, 'gwei'),
-                'maxFeePerGas':Web3.toWei(MAXFeeperGas, 'gwei'),
-                'maxPriorityFeePerGas': Web3.toWei('10', 'gwei'),
+                # 'maxFeePerGas':Web3.toWei(MAXFeeperGas, 'gwei'),
+                # 'maxPriorityFeePerGas': Web3.toWei('10', 'gwei'),
                 'from': self.account.address,
                 'nonce': nonce
             }
