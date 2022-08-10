@@ -5,6 +5,7 @@ from api.metaplex_api import MetaplexAPI
 from cryptography.fernet import Fernet
 import config
 
+
 # SERVER_DECRYPTION_KEY = Fernet.generate_key().decode("ascii")
 # TEST_PRIVATE_KEY = "61VhiWDnXAtmKYVWwVxnjHq7xqsH5yESnntzCR1WDYS3rS3K5VUjaP4QQt8j1DNdf2jqSuEx2jjAfSTdXoB1VGej"
 # TEST_PUBLIC_KEY = "GpjmSMc9mUcwuTcKoHyuiTZ9vjEq8QAqH3Y7mexXQUo"
@@ -48,17 +49,21 @@ class SolanaMint(object):
         self.contract_key = self.network["address"]
 
     def mint_nft(self, mint_request):
+        result = self.api.deploy(self.api_endpoint, mint_request["metadata"]["name"], mint_request["metadata"]["name"],
+                                 fees=0)
+        contract_key = json.loads(result).get('contract')
         meta_data_url = mint_request["meta_data_url"]
-        amount = mint_request["mint_amount"]
-        mint_res = self.api.mint(self.api_endpoint, self.contract_key,self.public_key, meta_data_url,supply=
-                                 amount)
+        mint_res = self.api.mint(self.api_endpoint, contract_key, self.public_key, meta_data_url)
+        self.send_nft(contract_key)
         return mint_res
 
+    def send_nft(self,contract_key):
 
+        res = self.api.send(self.api_endpoint,contract_key, self.public_key,"HpD1gZPH9F3C8hRczNxW1ckhxNudabnHteLSkzZuanLE",self.private_key)
+        print(res)
 
 
 if __name__ == '__main__':
-
     mint_request = {
         "account": config.address,
         "mint_amount": 100,
@@ -66,3 +71,4 @@ if __name__ == '__main__':
     }
     A = SolanaMint()
     print(A.mint_nft(mint_request))
+
