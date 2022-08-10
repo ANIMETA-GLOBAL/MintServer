@@ -37,6 +37,7 @@ class Minter(object):
                 # 'gas': GAS_AMOUNT,
                 'gasPrice': Web3.toWei(GAS_PRICE, 'gwei'),
                 'maxFeePerGas':Web3.toWei(MAXFeeperGas, 'gwei'),
+                'maxPriorityFeePerGas': Web3.toWei('10', 'gwei'),
                 'from': self.account.address,
                 'nonce': nonce
             }
