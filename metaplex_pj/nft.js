@@ -49,7 +49,7 @@ async function mintNft(uri,name,fee) {
         sellerFeeBasisPoints: fee, // Represents 5.00%.
     })
     .run();
-    console.log(nft)
+    // console.log(nft)
     return nft
 }
 
@@ -60,7 +60,7 @@ await subscriber.connect();
 await subscriber.subscribe('rq_solana', (message) => {
     // console.log(message); // 'message'
     var request = JSON.parse(message);
-
+    console.log(request);
     try {
 
         if (request.function == "getAllByOwner" && request.args.address) {
@@ -73,7 +73,7 @@ await subscriber.subscribe('rq_solana', (message) => {
             })
         }
 
-        if (request.function == "createNFT" && request.args.uri && request.args.name && request.args.fee) {
+        if (request.function == "createNFT" && request.args.uri && request.args.name) {
             console.log("receipt createNFT:");
             console.log(request.args.address);
             client.set(request.id,message);

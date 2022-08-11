@@ -59,8 +59,16 @@ class MetaPlexClient(object):
         # print(result)
         return result
 
+    def create_nft(self, uri:str,name:str,fee:int):
+        req = RequestStruct("createNFT", {"uri": uri,"name":name,"fee":fee})
+        self.publish(req.request())
+        result = self.response_from_id(req.id)
+        # print(result)
+        return result
+
 
 if __name__ == '__main__':
     A = MetaPlexClient()
-    res = A.get_all_by_owner(address="GpjmSMc9mUcwuTcKoHyuiTZ9vjEq8QAqH3Y7mexXQUo")
-    pp(json.loads(res))
+    # res = A.get_all_by_owner(address="GpjmSMc9mUcwuTcKoHyuiTZ9vjEq8QAqH3Y7mexXQUo")
+    res = A.create_nft(uri="https://arweave.net/lafoms3egQiVeboVVSsgIXRH14DiyxmKLwzD_EWiKv8",name="test",fee=0)
+    print(res)
