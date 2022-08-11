@@ -1,12 +1,12 @@
 import { Metaplex, keypairIdentity, bundlrStorage } from "@metaplex-foundation/js";
 import { Connection, clusterApiUrl, Keypair, PublicKey } from "@solana/web3.js";
 import { createClient } from 'redis';
-
+const redispwd = process.env.REDISPWD
 const client = createClient({
     socket: {
         host: "211.149.170.109",
     },
-    password: "animeta"
+    password: redispwd
 
 });
 const connection = new Connection(clusterApiUrl("devnet"));
