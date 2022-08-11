@@ -1,10 +1,15 @@
 import { Metaplex, keypairIdentity, bundlrStorage } from "@metaplex-foundation/js";
 import { Connection, clusterApiUrl, Keypair, PublicKey } from "@solana/web3.js";
 import { createClient } from 'redis';
+import dotenv from 'dotenv'
+
+dotenv.config()
 const redispwd = process.env.REDISPWD
+const redishost = process.env.REDISHOST
+// console.log(redispwd)
 const client = createClient({
     socket: {
-        host: "211.149.170.109",
+        host: redishost,
     },
     password: redispwd
 
