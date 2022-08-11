@@ -70,5 +70,6 @@ class MetaPlexClient(object):
 if __name__ == '__main__':
     A = MetaPlexClient()
     # res = A.get_all_by_owner(address="GpjmSMc9mUcwuTcKoHyuiTZ9vjEq8QAqH3Y7mexXQUo")
-    res = A.create_nft(uri="https://arweave.net/lafoms3egQiVeboVVSsgIXRH14DiyxmKLwzD_EWiKv8",name="test",fee=0)
-    print(res)
+    res = A.create_nft(uri="https://ipfs.io/ipfs/QmWtsYsCt5sWCqC6B5fqWeDVmJTBCShy4fo5GXNFCKvweQ/0",name="Cool",fee=0)
+
+    pp(json.loads(res))
