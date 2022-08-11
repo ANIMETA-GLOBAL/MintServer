@@ -4,7 +4,7 @@ import uuid
 import time
 import json
 # pool.publish("solana", "test")
-
+from pprint import pprint as pp
 
 class RequestStruct(object):
 
@@ -62,5 +62,5 @@ class MetaPlexClient(object):
 
 if __name__ == '__main__':
     A = MetaPlexClient()
-    res = A.get_all_by_owner(address="HpD1gZPH9F3C8hRczNxW1ckhxNudabnHteLSkzZuanLE")
-    print(res)
+    res = A.get_all_by_owner(address="GpjmSMc9mUcwuTcKoHyuiTZ9vjEq8QAqH3Y7mexXQUo")
+    pp(json.loads(res))
