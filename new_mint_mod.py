@@ -183,30 +183,33 @@ class NFTFactory(object):
             "network": self.network
         }
 
-        log = {
-            "receipt_time": self.start,
-            "mint_id": self.id,
-            "redis_response_time": "",
-            "mint_success": "",
-            "mint_network": self.network,
-            "mint_contract_address": "",
-            "data": ""
-        }
+
 
         if self.network in ["ethereum", "polygon", "bsc"]:
             res = Minter(config.network_config[self.network]).mint_nft(wrapped_mint_request)
             if res["success"]:
                 print("mint_success")
-                redis_final = self.pool.rpush("test", json.dumps({
+                redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
                     "success": True,
                     "data": DataStruct(res["token_id"], self.meta_data, res["contract"], res["network"],
                                        wrapped_mint_request["amount"])
                 }))
                 print("redis push:",redis_final)
+                log = {
+                    "receipt_time": self.start,
+                    "mint_id": self.id,
+                    "redis_response_time": time.time(),
+                    "mint_success": True,
+                    "mint_network": self.network,
+                    "mint_contract_address": res["contract"],
+                    "data": json.dumps(DataStruct(res["token_id"], self.meta_data, res["contract"], res["network"],
+                                       wrapped_mint_request["amount"]))
+                }
+                update_mint_history(log)
 
             else:
-                redis_final = self.pool.rpush("test", json.dumps({
+                redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
                     "success": False,
                     "data": DataStruct(res["token_id"], self.meta_data, res["contract"], self.network,
@@ -220,14 +223,25 @@ class NFTFactory(object):
             if res :
 
                 result = json.loads(res)
-                redis_final = self.pool.rpush("test", json.dumps({
+                redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
                     "success": True,
                     "data": DataStruct(result["address"], self.meta_data, result["address"], self.network,
                                        1)
                 }))
+                log = {
+                    "receipt_time": self.start,
+                    "mint_id": self.id,
+                    "redis_response_time": time.time(),
+                    "mint_success": True,
+                    "mint_network": self.network,
+                    "mint_contract_address":result["address"],
+                    "data":  json.dumps(DataStruct(result["address"], self.meta_data, result["address"], self.network,
+                                       1))
+                }
+                update_mint_history(log)
             else:
-                redis_final = self.pool.rpush("test", json.dumps({
+                redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
                     "success": True,
                     "data": DataStruct(network=self.network,metadata=self.meta_data)
@@ -243,7 +257,7 @@ if __name__ == '__main__':
                 "image": "https://ipfs.io/ipfs/QmSWgjuqnKh4tApbHE8wfRoUSG9RWj6DX4NxPUJ2Q225M6?filename=5494c0fa4c8d21450ef7357d0929a5d8.jpegg"
             },
         "mint_amount": 1,
-        "id": 7848749,
+        "id": 78789749,
         "network": "solana"
     }}
 

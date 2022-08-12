@@ -46,7 +46,7 @@ class MetaPlexClient(object):
             time_count += 1
             time.sleep(0.5)
             res = self.pool.get(id)
-            print(time_count)
+            # print(time_count)
             if res and not get_response:
                 get_response = True
                 res = None
