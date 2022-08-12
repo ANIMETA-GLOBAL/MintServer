@@ -6,6 +6,7 @@ import json
 # pool.publish("solana", "test")
 from pprint import pprint as pp
 
+
 class RequestStruct(object):
 
     def __init__(self, function_name: str, args: dict):
@@ -38,10 +39,10 @@ class MetaPlexClient(object):
     def publish(self, request):
         self.pool.publish(self.pub_ch, request)
 
-    def response_from_id(self, id,timeout = 60):
+    def response_from_id(self, id, timeout=300):
         time_count = 0
         get_response = False
-        while time_count < (timeout/0.5):
+        while time_count < (timeout / 0.5):
             time_count += 1
             time.sleep(0.5)
             res = self.pool.get(id)
@@ -51,6 +52,7 @@ class MetaPlexClient(object):
                 res = None
             if res and get_response and "gen_ts" not in res:
                 return res
+        return False
 
     def get_all_by_owner(self, address):
         req = RequestStruct("getAllByOwner", {"address": address})
@@ -59,8 +61,8 @@ class MetaPlexClient(object):
         # print(result)
         return result
 
-    def create_nft(self, uri:str,name:str,fee:int):
-        req = RequestStruct("createNFT", {"uri": uri,"name":name,"fee":fee})
+    def create_nft(self, uri: str, name: str, fee: int):
+        req = RequestStruct("createNFT", {"uri": uri, "name": name, "fee": fee})
         self.publish(req.request())
         result = self.response_from_id(req.id)
         # print(result)
@@ -69,7 +71,7 @@ class MetaPlexClient(object):
 
 if __name__ == '__main__':
     A = MetaPlexClient()
-    # res = A.get_all_by_owner(address="GpjmSMc9mUcwuTcKoHyuiTZ9vjEq8QAqH3Y7mexXQUo")
-    res = A.create_nft(uri="https://ipfs.io/ipfs/QmWtsYsCt5sWCqC6B5fqWeDVmJTBCShy4fo5GXNFCKvweQ/0",name="Cool",fee=0)
+    res = A.get_all_by_owner(address="GpjmSMc9mUcwuTcKoHyuiTZ9vjEq8QAqH3Y7mexXQUo")
+    # res = A.create_nft(uri="https://ipfs.io/ipfs/QmWtsYsCt5sWCqC6B5fqWeDVmJTBCShy4fo5GXNFCKvweQ/0",name="Cool",fee=0)
 
     pp(json.loads(res))

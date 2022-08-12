@@ -5,15 +5,73 @@ from eth_account import Account
 import config
 from web3.middleware import construct_sign_and_send_raw_middleware
 from web3.middleware import geth_poa_middleware
+from pprint import pprint as pp
+import json
+import pymysql
+import logging
+import time
+import os
+import redis
+from AnimetaIPFS.animeta_ipfs import AnimetaIPFS
+from metaplex_pj.metaplexJ2P import MetaPlexClient
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)  # Log等级总开关
+rq = time.strftime('%Y%m%d%H%M', time.localtime(time.time()))[:-4]
+log_path = os.path.dirname(os.getcwd()) + '/MintServer/logs/'
+log_name = log_path + "mint_" + rq + '.log'
+logfile = log_name
+fh = logging.FileHandler(logfile, mode='a')
+fh.setLevel(logging.DEBUG)  # 输出到file的log等级的开关
+formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 with open('contract/ABI.json', 'r') as abi:
     ABI = abi.read()
+
+
+def DataStruct(token_id="", metadata="", contract_address="", network="", mint_amount=""):
+    data_struct = {
+        "token_id": token_id,
+        "nft_data": metadata,
+        "contract_address": contract_address,
+        "network": network,
+        "mint_amount": mint_amount
+
+    }
+
+    return data_struct
+
+
+def update_mint_history(history):
+    db = pymysql.connect(host=config.history_mysql_host, user=config.mysql_user, password=config.mysql_pwd,
+                         db=config.mysql_db)
+
+    cursor = db.cursor()
+    sql = "INSERT INTO animeta_mint_history(receipt_time, \
+           mint_id,redis_response_time,mint_success,mint_network,mint_contract_address,data) \
+           VALUES (%s,%s,%s,%s,%s,%s,%s)"
+
+    val = ((history["receipt_time"], history["mint_id"], history["redis_response_time"], history["mint_success"],
+            history["mint_network"], history["mint_contract_address"], history["data"]),)
+    try:
+        # 执行sql语句
+        cursor.executemany(sql, set(val))
+        # 提交到数据库执行
+        db.commit()
+    except Exception as E:
+        # 如果发生错误则回滚
+        print(E)
+        logger.debug("update-error" + str(E))
+        db.rollback()
 
 
 class Minter(object):
 
     def __init__(self, network):
         print(network)
+        self.network_name = network["name"]
         self.provider = Web3.HTTPProvider(network["rpcUrl"], )
         self.w3 = Web3(self.provider)
         self.chainId = network["chainId"]
@@ -73,32 +131,120 @@ class Minter(object):
         return res
 
     def mint_nft(self, mint_request):
-        return self.legacy_mint_nft(mint_request) if self.chainId == config.network_config["bsc"][
+        res = self.legacy_mint_nft(mint_request) if self.chainId == config.network_config["bsc"][
             "chainId"] else self.london_mint_nft(mint_request)
+        mint_result = json.loads(Web3.toJSON(res))
+        # pp(mint_result)
+        if mint_result["status"] == 1:
+            token_id_hex = mint_result["logs"][1]["topics"][1]
+            token_id = int(token_id_hex, 16)
+            # print(token_id, self.network_name)
+            # print(mint_request)
+
+            result = {
+                "success": True,
+                "network": self.network_name,
+                "contract": self.contract.address,
+                "token_id": token_id
+            }
+        else:
+            result = {
+                "success": False,
+                "network": "",
+                "contract": "",
+                "token_id": ""
+            }
+
+        return result
 
 
+#
 class NFTFactory(object):
+    #
+    def __init__(self, mint_request):
+        self.start = time.time()
 
-    def __init__(self, ):
-        self.mint_address = config.address
-        self.private_key = config.private_key
+        self.network = mint_request["network"]
+        self.amount = mint_request["mint_amount"]
+        self.meta_data = mint_request["meta_data"]
+        self.id = mint_request["id"]
+        self.pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,
+                                password=config.redis_pwd, db=0)
+        self.ipfs = AnimetaIPFS()
 
-        self.ethereum = config.network_config["ethereum"]
-        self.polygon = config.network_config["polygon"]
-        self.bsc = config.network_config["bsc"]
+        self.cid = self.ipfs.upload(self.meta_data)["Hash"]
+        self.uri = f"https://ipfs.io/ipfs/{self.cid}"
+
+    def mint(self):
+        wrapped_mint_request = {
+            "account": config.address,
+            "amount": self.amount,
+            "uri": self.uri,
+            "network": self.network
+        }
+
+        log = {
+            "receipt_time": self.start,
+            "mint_id": self.id,
+            "redis_response_time": "",
+            "mint_success": "",
+            "mint_network": self.network,
+            "mint_contract_address": "",
+            "data": ""
+        }
+
+        if self.network in ["ethereum", "polygon", "bsc"]:
+            res = Minter(config.network_config[self.network]).mint_nft(wrapped_mint_request)
+            if res["success"]:
+                print("mint_success")
+                redis_final = self.pool.rpush("test", json.dumps({
+                    "id": self.id,
+                    "success": True,
+                    "data": DataStruct(res["token_id"], self.meta_data, res["contract"], res["network"],
+                                       wrapped_mint_request["amount"])
+                }))
+                print("redis push:",redis_final)
+
+            else:
+                redis_final = self.pool.rpush("test", json.dumps({
+                    "id": self.id,
+                    "success": False,
+                    "data": DataStruct(res["token_id"], self.meta_data, res["contract"], self.network,
+                                       wrapped_mint_request["amount"])
+                }))
+                print("redis push:", redis_final)
+
+        if self.network == "solana":
+            self.client = MetaPlexClient()
+            res = self.client.create_nft(uri=wrapped_mint_request["uri"], name=self.meta_data["name"], fee=500)
+            if res :
+
+                result = json.loads(res)
+                redis_final = self.pool.rpush("test", json.dumps({
+                    "id": self.id,
+                    "success": True,
+                    "data": DataStruct(result["address"], self.meta_data, result["address"], self.network,
+                                       1)
+                }))
+            else:
+                redis_final = self.pool.rpush("test", json.dumps({
+                    "id": self.id,
+                    "success": True,
+                    "data": DataStruct(network=self.network,metadata=self.meta_data)
+                }))
 
 
 if __name__ == '__main__':
-    mint_request = {
-        "account": config.address,
-        "amount": 100,
-        "uri": "https://ipfs.moralis.io:2053/ipfs/QmZJxFn8kTwb8HcpHyoNPq1jsDSE2pEqG848FGhtFGU5ES"
-    }
+    data = {'mint_request': {
+        "meta_data":
+            {
+                "name": "hyx nb",
+                "description": " nb a hyx",
+                "image": "https://ipfs.io/ipfs/QmSWgjuqnKh4tApbHE8wfRoUSG9RWj6DX4NxPUJ2Q225M6?filename=5494c0fa4c8d21450ef7357d0929a5d8.jpegg"
+            },
+        "mint_amount": 1,
+        "id": 7848749,
+        "network": "solana"
+    }}
 
-    network = "ethereum"
-
-    A = Minter(config.network_config[network])
-
-    res = A.mint_nft(mint_request)
-
-    print(res)
+    A = NFTFactory(data).mint()

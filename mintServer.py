@@ -1,6 +1,6 @@
 from aiohttp import web
 import json
-import mint_mod
+import new_mint_mod
 import time
 routes = web.RouteTableDef()
 import logging
@@ -21,7 +21,7 @@ logger.addHandler(fh)
 import threading
 
 def minting(data):
-    res = mint_mod.mint_nft(data["mint_request"])
+    res = new_mint_mod.NFTFactory((data["mint_request"])).mint()
     print(res)
 
 
