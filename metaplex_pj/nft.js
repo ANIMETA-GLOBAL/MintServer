@@ -69,7 +69,7 @@ await subscriber.subscribe('rq_solana', (message) => {
             console.log(request.args.address);
             client.set(request.id,message);
             findNft(request.args.address).then(res => {
-                console.log(res)
+                // console.log(res)
                 client.set(request.id, JSON.stringify(res))
             })
         }
@@ -79,7 +79,7 @@ await subscriber.subscribe('rq_solana', (message) => {
             console.log(request.args.address);
             client.set(request.id,message);
             mintNft(request.args.uri,request.args.name,request.args.fee).then(res => {
-                console.log(res)
+                // console.log(res)
                 client.set(request.id, JSON.stringify(res))
             })
         }
