@@ -13,7 +13,8 @@ const client = createClient({
     socket: {
         host: redishost,
     },
-    password: redispwd
+    password: redispwd,
+    database:2
 
 });
 const connection = new Connection(clusterApiUrl("devnet"));

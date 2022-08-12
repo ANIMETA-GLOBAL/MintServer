@@ -31,7 +31,7 @@ class MetaPlexClient(object):
     def __init__(self):
         self.pool = redis.Redis(host=config.redis_host, port=config.redis_port, decode_responses=True,
                                 password=config.redis_pwd,
-                                db=0)
+                                db=2)
 
         self.pub_ch = "rq_solana"
         self.sub_ch = "rp_solana"
