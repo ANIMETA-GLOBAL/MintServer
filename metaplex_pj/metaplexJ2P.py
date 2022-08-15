@@ -39,7 +39,7 @@ class MetaPlexClient(object):
     def publish(self, request):
         self.pool.publish(self.pub_ch, request)
 
-    def response_from_id(self, id, timeout=300):
+    def response_from_id(self, id, timeout=600):
         time_count = 0
         get_response = False
         while time_count < (timeout / 0.5):
@@ -51,6 +51,7 @@ class MetaPlexClient(object):
                 get_response = True
                 res = None
             if res and get_response and "gen_ts" not in res:
+                self.pool.delete(id)
                 return res
         return False
 
