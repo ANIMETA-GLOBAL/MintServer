@@ -159,6 +159,7 @@ class Minter(object):
 
             return result
         except Exception as E:
+            print(time.time(),mint_request,E)
             result = {
                 "success": False,
                 "network": "",
