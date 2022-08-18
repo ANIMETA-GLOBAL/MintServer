@@ -136,7 +136,6 @@ class Minter(object):
                 "chainId"] else self.london_mint_nft(mint_request)
             mint_result = json.loads(Web3.toJSON(res))
 
-
             if mint_result["status"] == 1:
                 token_id_hex = mint_result["logs"][1]["topics"][1]
                 token_id = int(token_id_hex, 16)
@@ -159,7 +158,7 @@ class Minter(object):
 
             return result
         except Exception as E:
-            print(time.time(),mint_request,E)
+            print(time.time(), mint_request, E)
             result = {
                 "success": False,
                 "network": "",
@@ -198,7 +197,7 @@ class NFTFactory(object):
         if self.network in ["ethereum", "polygon", "bsc"]:
             res = Minter(config.network_config[self.network]).mint_nft(wrapped_mint_request)
             if res["success"]:
-                print(self.id,"mint_success")
+                print(self.id, "mint_success")
                 redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
                     "success": True,
@@ -229,12 +228,13 @@ class NFTFactory(object):
                     "receipt_time": self.start,
                     "mint_id": self.id,
                     "redis_response_time": time.time(),
-                    "mint_success": True,
+                    "mint_success": False,
                     "mint_network": self.network,
                     "mint_contract_address": res["contract"],
                     "data": json.dumps(DataStruct(res["token_id"], self.meta_data, res["contract"], res["network"],
                                                   wrapped_mint_request["amount"]))
                 }
+                update_mint_history(log)
                 print("redis push:", redis_final)
 
         if self.network == "solana":
@@ -253,7 +253,7 @@ class NFTFactory(object):
                     "receipt_time": self.start,
                     "mint_id": self.id,
                     "redis_response_time": time.time(),
-                    "mint_success": False,
+                    "mint_success": True,
                     "mint_network": self.network,
                     "mint_contract_address": result["address"],
                     "data": json.dumps(DataStruct(result["address"], self.meta_data, result["address"], self.network,
@@ -263,9 +263,19 @@ class NFTFactory(object):
             else:
                 redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
-                    "success": True,
+                    "success": False,
                     "data": DataStruct(network=self.network, metadata=self.meta_data)
                 }))
+                log = {
+                    "receipt_time": self.start,
+                    "mint_id": self.id,
+                    "redis_response_time": time.time(),
+                    "mint_success": False,
+                    "mint_network": self.network,
+                    "mint_contract_address": "",
+                    "data": ""
+                }
+                update_mint_history(log)
 
 
 if __name__ == '__main__':
