@@ -198,7 +198,7 @@ class NFTFactory(object):
         if self.network in ["ethereum", "polygon", "bsc"]:
             res = Minter(config.network_config[self.network]).mint_nft(wrapped_mint_request)
             if res["success"]:
-                print("mint_success")
+                print(self.id,"mint_success")
                 redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
                     "success": True,
