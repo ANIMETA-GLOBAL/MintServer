@@ -225,6 +225,16 @@ class NFTFactory(object):
                     "data": DataStruct(res["token_id"], self.meta_data, res["contract"], self.network,
                                        wrapped_mint_request["amount"])
                 }))
+                log = {
+                    "receipt_time": self.start,
+                    "mint_id": self.id,
+                    "redis_response_time": time.time(),
+                    "mint_success": True,
+                    "mint_network": self.network,
+                    "mint_contract_address": res["contract"],
+                    "data": json.dumps(DataStruct(res["token_id"], self.meta_data, res["contract"], res["network"],
+                                                  wrapped_mint_request["amount"]))
+                }
                 print("redis push:", redis_final)
 
         if self.network == "solana":
@@ -243,7 +253,7 @@ class NFTFactory(object):
                     "receipt_time": self.start,
                     "mint_id": self.id,
                     "redis_response_time": time.time(),
-                    "mint_success": True,
+                    "mint_success": False,
                     "mint_network": self.network,
                     "mint_contract_address": result["address"],
                     "data": json.dumps(DataStruct(result["address"], self.meta_data, result["address"], self.network,
