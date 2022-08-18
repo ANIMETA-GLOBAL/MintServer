@@ -7,3 +7,6 @@ SolanaMintServer/api/__init__.py
 SolanaMintServer/metaplex/__init__.py
 *.logs
 config.py
+/metaplex_pj/node_modules/
+/metadata_temp/
+metaplex_pj/.env

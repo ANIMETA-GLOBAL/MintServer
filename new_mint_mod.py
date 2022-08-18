@@ -131,31 +131,42 @@ class Minter(object):
         return res
 
     def mint_nft(self, mint_request):
-        res = self.legacy_mint_nft(mint_request) if self.chainId == config.network_config["bsc"][
-            "chainId"] else self.london_mint_nft(mint_request)
-        mint_result = json.loads(Web3.toJSON(res))
-        # pp(mint_result)
-        if mint_result["status"] == 1:
-            token_id_hex = mint_result["logs"][1]["topics"][1]
-            token_id = int(token_id_hex, 16)
-            # print(token_id, self.network_name)
-            # print(mint_request)
+        try:
+            res = self.legacy_mint_nft(mint_request) if self.chainId == config.network_config["bsc"][
+                "chainId"] else self.london_mint_nft(mint_request)
+            mint_result = json.loads(Web3.toJSON(res))
 
-            result = {
-                "success": True,
-                "network": self.network_name,
-                "contract": self.contract.address,
-                "token_id": token_id
-            }
-        else:
+
+            if mint_result["status"] == 1:
+                token_id_hex = mint_result["logs"][1]["topics"][1]
+                token_id = int(token_id_hex, 16)
+                # print(token_id, self.network_name)
+                # print(mint_request)
+
+                result = {
+                    "success": True,
+                    "network": self.network_name,
+                    "contract": self.contract.address,
+                    "token_id": token_id
+                }
+            else:
+                result = {
+                    "success": False,
+                    "network": "",
+                    "contract": "",
+                    "token_id": ""
+                }
+
+            return result
+        except Exception as E:
             result = {
                 "success": False,
                 "network": "",
                 "contract": "",
-                "token_id": ""
+                "token_id": "",
+                "error": str(E)
             }
-
-        return result
+            return result
 
 
 #
@@ -183,8 +194,6 @@ class NFTFactory(object):
             "network": self.network
         }
 
-
-
         if self.network in ["ethereum", "polygon", "bsc"]:
             res = Minter(config.network_config[self.network]).mint_nft(wrapped_mint_request)
             if res["success"]:
@@ -195,7 +204,7 @@ class NFTFactory(object):
                     "data": DataStruct(res["token_id"], self.meta_data, res["contract"], res["network"],
                                        wrapped_mint_request["amount"])
                 }))
-                print("redis push:",redis_final)
+                print("redis push:", redis_final)
                 log = {
                     "receipt_time": self.start,
                     "mint_id": self.id,
@@ -204,7 +213,7 @@ class NFTFactory(object):
                     "mint_network": self.network,
                     "mint_contract_address": res["contract"],
                     "data": json.dumps(DataStruct(res["token_id"], self.meta_data, res["contract"], res["network"],
-                                       wrapped_mint_request["amount"]))
+                                                  wrapped_mint_request["amount"]))
                 }
                 update_mint_history(log)
 
@@ -220,7 +229,7 @@ class NFTFactory(object):
         if self.network == "solana":
             self.client = MetaPlexClient()
             res = self.client.create_nft(uri=wrapped_mint_request["uri"], name=self.meta_data["name"], fee=500)
-            if res :
+            if res:
 
                 result = json.loads(res)
                 redis_final = self.pool.rpush("mintRes", json.dumps({
@@ -235,16 +244,16 @@ class NFTFactory(object):
                     "redis_response_time": time.time(),
                     "mint_success": True,
                     "mint_network": self.network,
-                    "mint_contract_address":result["address"],
-                    "data":  json.dumps(DataStruct(result["address"], self.meta_data, result["address"], self.network,
-                                       1))
+                    "mint_contract_address": result["address"],
+                    "data": json.dumps(DataStruct(result["address"], self.meta_data, result["address"], self.network,
+                                                  1))
                 }
                 update_mint_history(log)
             else:
                 redis_final = self.pool.rpush("mintRes", json.dumps({
                     "id": self.id,
                     "success": True,
-                    "data": DataStruct(network=self.network,metadata=self.meta_data)
+                    "data": DataStruct(network=self.network, metadata=self.meta_data)
                 }))
 
 
