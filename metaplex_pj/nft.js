@@ -17,7 +17,7 @@ const client = createClient({
     database:2
 
 });
-const connection = new Connection(clusterApiUrl("devnet"));
+const connection = new Connection(clusterApiUrl("mainnet-beta"));
 
 client.on('error', (err) => console.log('Redis Client Error', err));
 
