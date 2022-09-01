@@ -76,7 +76,7 @@ class Minter(object):
         self.w3 = Web3(self.provider)
         self.chainId = network["chainId"]
         print(self.w3.isConnected())
-        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        # self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         self.address = network["address"]
         self.contract = self.w3.eth.contract(address=self.address, abi=ABI)
         self.account: LocalAccount = Account.from_key(config.private_key)
@@ -282,13 +282,13 @@ if __name__ == '__main__':
     data = {'mint_request': {
         "meta_data":
             {
-                "name": "hyx nb",
-                "description": " nb a hyx",
+                "name": "ANIMETA1",
+                "description": "ANIMETA",
                 "image": "https://ipfs.io/ipfs/QmSWgjuqnKh4tApbHE8wfRoUSG9RWj6DX4NxPUJ2Q225M6?filename=5494c0fa4c8d21450ef7357d0929a5d8.jpegg"
             },
         "mint_amount": 1,
         "id": 78789749,
-        "network": "solana"
+        "network": "ethereum"
     }}
 
     A = NFTFactory(data).mint()
