@@ -1,6 +1,7 @@
 import requests
 import config
 from pprint import pprint as pp
+import uuid
 
 
 class Luniverse(object):
@@ -44,8 +45,19 @@ class Luniverse(object):
         return res.json()
 
 
-if __name__ == '__main__':
 
+    def post_metadata(self, metadata):
+        url = "https://api.luniverse.io/svc/v2/nft/metadata"
+        metadata["maxMintLimit"] = 1
+        print(metadata)
+        # res = requests.post(url, json=metadata)
+
+
+if __name__ == '__main__':
+    metadata = {"name": "Cool NFT", "description": "This is a cool NFT",
+                "image": "https://ipfs.io/ipfs/QmSWgjuqnKh4tApbHE8wfRoUSG9RWj6DX4NxPUJ2Q225M6?filename=5494c0fa4c8d21450ef7357d0929a5d8.jpegg"}
+    print(uuid.uuid4())
     A = Luniverse()
     # print(A.auth_token().json())
-    print(A.get_nft_contract_detail("1525706082614227204"))
+    print(A.post_metadata(metadata))
+    # print(A.get_nft_contract_detail("1525706082614227204"))
