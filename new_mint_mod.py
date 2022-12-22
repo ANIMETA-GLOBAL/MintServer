@@ -111,7 +111,7 @@ class Minter(object):
         print("work on london mint")
         current_gas = self.w3.eth.gas_price
         print("gas price:", current_gas)
-        MFPG = 30 if self.network_name !="polygon" else 90
+        MFPG = 30 if self.network_name !="polygon" else 200
         nonce = self.w3.eth.get_transaction_count(self.account.address)
         tx = self.contract.functions.mint(mint_request["account"], mint_request["amount"], bytes([]),
                                           mint_request["uri"]).buildTransaction(
